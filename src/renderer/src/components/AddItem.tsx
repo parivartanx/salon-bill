@@ -1,12 +1,9 @@
 import React from 'react';
 import { useForm, SubmitHandler } from 'react-hook-form';
 import { X } from 'lucide-react';
+import { Product } from '@renderer/types/Product';
 
-type FormValues = {
-  productName: string;
-  price: number;
-  productDescription: string;
-};
+
 
 const AddItemPage: React.FC = () => {
   const {
@@ -14,9 +11,9 @@ const AddItemPage: React.FC = () => {
     handleSubmit,
     formState: { errors },
     reset,
-  } = useForm<FormValues>();
+  } = useForm<Product>();
 
-  const onSubmit: SubmitHandler<FormValues> = (data) => {
+  const onSubmit: SubmitHandler<Product> = (data) => {
     console.log('Form Submitted:', data);
     reset();
   };

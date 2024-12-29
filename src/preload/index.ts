@@ -1,5 +1,12 @@
-import { contextBridge } from 'electron'
+import { contextBridge, ipcRenderer } from 'electron'
 import { electronAPI } from '@electron-toolkit/preload'
+
+declare global {
+  interface Window {
+    electron: typeof electronAPI
+    api: typeof api
+  }
+}
 
 // Custom APIs for renderer
 const api = {}
@@ -11,12 +18,14 @@ if (process.contextIsolated) {
   try {
     contextBridge.exposeInMainWorld('electron', electronAPI)
     contextBridge.exposeInMainWorld('api', api)
+    contextBridge.exposeInMainWorld('electronAPI', {
+      invoke: (channel: string, data: unknown) => ipcRenderer.invoke(channel, data)
+    })
+
   } catch (error) {
     console.error(error)
   }
 } else {
-  // @ts-ignore (define in dts)
   window.electron = electronAPI
-  // @ts-ignore (define in dts)
   window.api = api
 }

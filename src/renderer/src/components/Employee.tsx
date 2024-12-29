@@ -1,35 +1,36 @@
-import React, { useState } from 'react';
+import { Employee } from '@renderer/types/Employee';
+import React, { useEffect, useState } from 'react';
 import { useForm, Controller, SubmitHandler } from 'react-hook-form';
+import { useEmployeeStore } from '@renderer/stores/employee-store';
 
-interface Employee {
-  id: number;
-  name: string;
-  phone: string;
-  email: string;
-}
 
 const EmployeeListPage: React.FC = () => {
-  const [employees, setEmployees] = useState<Employee[]>([
-    { id: 1, name: 'Amit Kumar', phone: '1234567890', email: 'amit@gmail.com' },
-    { id: 2, name: 'Sumit kumar', phone: '9876543210', email: 'Sumit@gmail.com' },
-  ]);
+  /// store initialization
+  const {addEmployee,employees,getAllEmployees} = useEmployeeStore()
+  
+  useEffect(() => {
+    getAllEmployees()
+  }, [getAllEmployees]);
+
+
   const [showForm, setShowForm] = useState(false);
   const [editMode, setEditMode] = useState(false);
   const [currentEmployee, setCurrentEmployee] = useState<Employee | null>(null);
+
 
   // useForm hook from react-hook-form
   const { control, handleSubmit, reset, formState: { errors } } = useForm<Employee>();
 
   const onSubmit: SubmitHandler<Employee> = (data) => {
     if (editMode && currentEmployee) {
-      setEmployees((prev) =>
-        prev.map((emp) =>
-          emp.id === currentEmployee.id ? { ...data, id: emp.id } : emp
-        )
-      );
+      // setEmployees((prev) =>
+      //   prev.map((emp) =>
+      //     emp.id === currentEmployee.id ? { ...data, id: emp.id } : emp
+      //   )
+      // );
       setEditMode(false);
     } else {
-      setEmployees((prev) => [...prev, { ...data, id: employees.length + 1 }]);
+      addEmployee(data)
     }
     reset(); // Reset form fields after submission
     setShowForm(false);
@@ -43,7 +44,8 @@ const EmployeeListPage: React.FC = () => {
   };
 
   const handleDeleteEmployee = (id: number) => {
-    setEmployees((prev) => prev.filter((employee) => employee.id !== id));
+    console.log("remove employee", id)
+    // setEmployees((prev) => prev.filter((employee) => employee.id !== id));
   };
 
   return (
