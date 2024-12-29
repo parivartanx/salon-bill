@@ -11,8 +11,8 @@ interface Bill {
 const BillHistoryPage: React.FC = () => {
   // Initial bill data
   const [bills] = useState<Bill[]>([
-    { billNo: '#1001', date: '2024-02-15', customer: 'John Doe', contactNo: '9876543210', total: '$45.97' },
-    { billNo: '#1002', date: '2024-02-16', customer: 'Jane Smith', contactNo: '9123456789', total: '$32.50' },
+    { billNo: '#1001', date: '2024-02-15', customer: 'John Doe', contactNo: '9876543210', total: '₹500.50' },
+    { billNo: '#1002', date: '2024-02-16', customer: 'Jane Smith', contactNo: '9123456789', total: '₹800.25' },
     // Add more sample data as needed
   ]);
 

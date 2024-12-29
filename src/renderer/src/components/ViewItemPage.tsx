@@ -16,11 +16,11 @@ type Product = {
 const ViewItemPage: React.FC = () => {
   // Sample product list
   const products: Product[] = [
-    { id: '001', name: 'Burger', price: '$8.99' },
-    { id: '002', name: 'Pizza', price: '$12.99' },
-    { id: '003', name: 'Chicken Biriyani', price: '$15.99' },
-    { id: '004', name: 'Pasta', price: '$7.99' },
-    { id: '005', name: 'Salad', price: '$5.99' },
+    { id: '001', name: 'Haircuts', price: '₹150.00' },
+    { id: '002', name: 'Hairstyling', price: '₹499.99' },
+    { id: '003', name: 'Hair Treatments', price: '₹999.00' },
+    { id: '004', name: 'Facials', price: '₹2499.99' },
+    { id: '005', name: 'Waxing', price: '₹899.00' },
   ];
 
   const [filteredProducts, setFilteredProducts] = useState<Product[]>(products);

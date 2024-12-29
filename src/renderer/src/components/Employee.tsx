@@ -10,8 +10,8 @@ interface Employee {
 
 const EmployeeListPage: React.FC = () => {
   const [employees, setEmployees] = useState<Employee[]>([
-    { id: 1, name: 'John Doe', phone: '1234567890', email: 'john@example.com' },
-    { id: 2, name: 'Jane Smith', phone: '9876543210', email: 'jane@example.com' },
+    { id: 1, name: 'Amit Kumar', phone: '1234567890', email: 'amit@gmail.com' },
+    { id: 2, name: 'Sumit kumar', phone: '9876543210', email: 'Sumit@gmail.com' },
   ]);
   const [showForm, setShowForm] = useState(false);
   const [editMode, setEditMode] = useState(false);

@@ -45,10 +45,10 @@ const Dashboard: React.FC = () => {
     chart: {
       type: 'donut',
     },
-    labels: ['Direct', 'Referral', 'Social Media', 'Email'],
+    labels: ['Amit', 'Sumit', 'Rakesh', 'Mukesh'],
     colors: ['#F97316', '#34D399', '#3B82F6', '#F43F5E'],
     title: {
-      text: 'Traffic Sources',
+      text: 'Service By',
       align: 'center',
       style: {
         fontSize: '16px',
@@ -96,8 +96,8 @@ const Dashboard: React.FC = () => {
     colors: ['#F43F5E', '#F97316', '#FACC15', '#34D399', '#3B82F6', '#8B5CF6', '#FF66B2', '#66B2FF', '#FF3366', '#FF9933'], // Different colors for each category
     xaxis: {
       categories: [
-        'Electronics', 'Clothing', 'Furniture', 'Books', 'Sports',
-        'Beauty', 'Toys', 'Home Appliances', 'Jewelry', 'Automotive'
+        'Haircut', 'Hairstyling', 'Hair Treatments', 'Facials', 'Waxing',
+        'Threading', 'Manicures', 'Pedicures', 'Head Massage', 'Full Body Massage'
       ], // Top 10 best-selling categories
     },
     title: {
@@ -133,10 +133,10 @@ const Dashboard: React.FC = () => {
         {/* Summary Cards */}
         <div className="bg-blue-100 p-4 rounded-lg">
           <h3 className="text-lg font-semibold">Today&apos;s Sales</h3>
-          <p className="text-2xl font-bold text-blue-600">$1,250.00</p>
+          <p className="text-2xl font-bold text-blue-600">₹1,250.00</p>
         </div>
         <div className="bg-green-100 p-4 rounded-lg">
-          <h3 className="text-lg font-semibold">Total Orders</h3>
+          <h3 className="text-lg font-semibold">Total Service</h3>
           <p className="text-2xl font-bold text-green-600">42</p>
         </div>
       </div>
