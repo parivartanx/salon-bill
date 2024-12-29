@@ -67,8 +67,8 @@ const ViewItemPage: React.FC = () => {
                 <td className="p-3">{product.name}</td>
                 <td className="p-3">{product.price}</td>
                 <td className="p-3">
-                  <button className="text-blue-500 mr-10">Edit/View</button>
-                  <button className="text-red-500">Delete</button>
+                  <button className="bg-blue-500 text-white px-4 py-2 rounded-lg hover:bg-blue-600 mr-10">Edit</button>
+                  <button className="bg-red-500 text-white px-4 py-2 rounded-lg hover:bg-red-600">Delete</button>
                 </td>
               </tr>
             ))

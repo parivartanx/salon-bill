@@ -10,7 +10,7 @@ interface Bill {
 
 const BillHistoryPage: React.FC = () => {
   // Initial bill data
-  const [bills, setBills] = useState<Bill[]>([
+  const [bills] = useState<Bill[]>([
     { billNo: '#1001', date: '2024-02-15', customer: 'John Doe', contactNo: '9876543210', total: '$45.97' },
     { billNo: '#1002', date: '2024-02-16', customer: 'Jane Smith', contactNo: '9123456789', total: '$32.50' },
     // Add more sample data as needed
@@ -61,7 +61,7 @@ const BillHistoryPage: React.FC = () => {
               <td className="p-3">{bill.contactNo}</td>
               <td className="p-3">{bill.total}</td>
               <td className="p-3">
-                <button className="text-blue-500">View</button>
+                <button className="bg-blue-500 text-white px-4 py-2 rounded-lg hover:bg-blue-600">View</button>
               </td>
             </tr>
           ))}

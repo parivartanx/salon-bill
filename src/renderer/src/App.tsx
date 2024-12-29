@@ -5,6 +5,7 @@ import BillPage from './components/BillPage'
 import AddItemPage from './components/AddItem'
 import ViewItemPage from './components/ViewItemPage'
 import BillHistoryPage from './components/BillHistory'
+import EmployeeListPage from './components/Employee'
 
 
 const App: React.FC = () => {
@@ -22,6 +23,8 @@ const App: React.FC = () => {
         return <ViewItemPage />
       case 'billHistory':
         return <BillHistoryPage />
+      case 'employeeList':
+        return <EmployeeListPage />;
       default:
         return <Dashboard />
     }
