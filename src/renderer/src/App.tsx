@@ -2,7 +2,6 @@ import React, { useState } from 'react'
 import Sidebar from './components/Sidebar'
 import Dashboard from './components/Dashboard'
 import BillPage from './components/BillPage'
-import AddItemPage from './components/AddItem'
 import ViewItemPage from './components/ViewItemPage'
 import BillHistoryPage from './components/BillHistory'
 import EmployeeListPage from './components/Employee'
@@ -17,8 +16,6 @@ const App: React.FC = () => {
         return <Dashboard />
       case 'bill':
         return <BillPage />
-      case 'addItem':
-        return <AddItemPage />
       case 'viewItem':
         return <ViewItemPage />
       case 'billHistory':

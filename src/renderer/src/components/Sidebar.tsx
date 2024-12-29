@@ -1,5 +1,5 @@
 import React from 'react';
-import { LayoutDashboard, Receipt, PlusSquare, List, FileText, Users } from 'lucide-react'; // Added Users icon
+import { LayoutDashboard, Receipt, List, FileText, Users } from 'lucide-react'; // Added Users icon
 
 interface SidebarProps {
   activePage: string;
@@ -10,7 +10,6 @@ const Sidebar: React.FC<SidebarProps> = ({ activePage, setActivePage }) => {
   const menuItems = [
     { icon: LayoutDashboard, label: 'Dashboard', page: 'dashboard' },
     { icon: Receipt, label: 'Make Bill', page: 'bill' },
-    { icon: PlusSquare, label: 'Add Product', page: 'addItem' },
     { icon: List, label: 'View Product', page: 'viewItem' },
     { icon: FileText, label: 'Bill History', page: 'billHistory' },
     { icon: Users, label: 'Employee List', page: 'employeeList' }, // Added Employee List menu item
