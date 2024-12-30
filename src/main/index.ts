@@ -2,6 +2,9 @@ import { app, shell, BrowserWindow, ipcMain } from 'electron'
 import { join } from 'path'
 import { electronApp, optimizer, is } from '@electron-toolkit/utils'
 import icon from '../../resources/icon.png?asset'
+import db from './database'
+
+import { addEmployee,getEmployees } from './query'
 
 function createWindow(): void {
   // Create the browser window.
@@ -13,7 +16,8 @@ function createWindow(): void {
     ...(process.platform === 'linux' ? { icon } : {}),
     webPreferences: {
       preload: join(__dirname, '../preload/index.js'),
-      sandbox: false
+      sandbox: false,
+      contextIsolation: true
     }
   })
 
@@ -59,6 +63,33 @@ app.whenReady().then(() => {
     // dock icon is clicked and there are no other windows open.
     if (BrowserWindow.getAllWindows().length === 0) createWindow()
   })
+})
+
+
+ipcMain.handle('add-employee', async(event, { name, phone, email }) => {
+  try {
+    const response = await addEmployee(name,phone,email)
+    if(response.changes === 0) {
+      return { success: false, message: 'Employee not added!' }
+    }
+    return { success: true, message: 'User added successfully!' }
+  } catch (error) {
+    return { success: false, message: (error as Error).message }
+  }
+})
+
+ipcMain.handle('get-employees', async() => {
+  try{
+    const employees = await getEmployees()
+    return {success:true, data:employees}
+  }catch(e){
+    return { success: false, message: (e as Error).message }
+  }
+})
+
+ipcMain.handle('get-users', () => {
+  const users = db.prepare('SELECT * FROM users')
+  return users.all()
 })
 
 // Quit when all windows are closed, except on macOS. There, it's common
