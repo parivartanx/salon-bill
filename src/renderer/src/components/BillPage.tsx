@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react'
 import { useForm, Controller, SubmitHandler } from 'react-hook-form'
+import { useEmployeeStore } from '@renderer/stores/employee-store'
 
 interface Product {
   productId: string
@@ -22,15 +23,21 @@ interface FormData {
 
 const BillPage: React.FC = () => {
   const { control, handleSubmit, watch, formState: { errors } } = useForm<FormData>()
+  const {employees,getAllEmployees } = useEmployeeStore()
 
   const [discountType, setDiscountType] = useState<'flat' | 'percentage'>('flat') // Default discount type
   const [products, setProducts] = useState<Product[]>([{ productId: '', productName: '', price: 0 }])
   const [totals, setTotals] = useState<Totals>({ subtotal: 0, discountAmount: 0, grandTotal: 0 })
-  const [employeeList] = useState(['Alice', 'Bob', 'Charlie', 'Diana']) // Replace with your employee list
+  // const [employeeList] = useState(['Alice', 'Bob', 'Charlie', 'Diana']) // Replace with your employee list
   const watchDiscount = watch('discount', 0)
+
+  useEffect(() => {
+    getAllEmployees()
+  })
 
   // Recalculate totals whenever products or discount changes
   useEffect(() => {
+    
     const calculateTotal = (discount: number) => {
       const subtotal = products.reduce((total, product) => total + product.price, 0)
 
@@ -128,15 +135,15 @@ const BillPage: React.FC = () => {
           <Controller
             name="selectedEmployee"
             control={control}
-            defaultValue={employeeList[0]}
+            defaultValue={employees[0].id.toString()}
             render={({ field }) => (
               <select
                 {...field}
                 className="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
               >
-                {employeeList.map((employee, index) => (
-                  <option key={index} value={employee}>
-                    {employee}
+                {employees.map((employee, index) => (
+                  <option key={index} value={employee.id}>
+                    {employee.name}
                   </option>
                 ))}
               </select>

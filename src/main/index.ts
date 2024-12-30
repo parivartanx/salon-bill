@@ -4,7 +4,11 @@ import { electronApp, optimizer, is } from '@electron-toolkit/utils'
 import icon from '../../resources/icon.png?asset'
 import db from './database'
 
-import { addEmployee,getEmployees } from './query'
+import { addEmployee,getEmployees,deleteEmployee, addProduct,getProducts,deleteProduct,
+  updateProduct,
+  updateEmployee
+
+} from './query'
 
 function createWindow(): void {
   // Create the browser window.
@@ -86,6 +90,91 @@ ipcMain.handle('get-employees', async() => {
     return { success: false, message: (e as Error).message }
   }
 })
+
+ipcMain.handle('delete-employee', async(event, {id}) => {
+  try {
+    const response = await deleteEmployee(id)
+    if(response.changes === 0) {
+      return { success: false, message: 'Employee not deleted!' }
+    }
+    return { success: true, message: 'Employee deleted successfully!' }
+  } catch (error) {
+    return { success: false, message: (error as Error).message }
+  }
+})
+
+ipcMain.handle('update-employee', async(event, {id, name, phone, email}) => {
+  try {
+    console.log("update-employee", id, name, phone, email)
+    const response = await updateEmployee(id, name, phone, email)
+    if(response.changes === 0) {
+      return { success: false, message: 'Employee not updated!' }
+    }
+    return { success: true, message: 'Employee updated successfully!' }
+  } catch (error) {
+    return { success: false, message: (error as Error).message }
+  }
+})
+
+
+
+/// Product IPC handlers
+ipcMain.handle('add-product', async(event, { name, price, description }) => {
+  try {
+    console.log("add-product", name, price, description)
+    const response = await addProduct(name,price,description)
+    console.log("response", response)
+    if(response.changes === 0) {
+      return { success: false, message: 'Product not added!' }
+    }
+    return { success: true, message: 'Product added successfully!' }
+  } catch (error) {
+    return { success: false, message: (error as Error).message }
+  }
+})
+
+ipcMain.handle('get-products', async() => {
+  try{
+    const products = await getProducts()
+    return {success:true, data:products}
+  }catch(e){
+    return { success: false, message: (e as Error).message }
+  }
+})
+
+ipcMain.handle('delete-product', async(event, {id}) => {
+  try {
+    const response = await deleteProduct(id)
+    if(response.changes === 0) {
+      return { success: false, message: 'Product not deleted!' }
+    }
+    return { success: true, message: 'Product deleted successfully!' }
+  } catch (error) {
+    return { success: false, message: (error as Error).message }
+  }
+})
+
+ipcMain.handle('update-product', async(event, {id, name, price, description}) => {
+  try {
+    const response = await updateProduct(id, name, price, description)
+    if(response.changes === 0) {
+      return { success: false, message: 'Product not updated!' }
+    }
+    return { success: true, message: 'Product updated successfully!' }
+  } catch (error) {
+    return { success: false, message: (error as Error).message }
+  }
+})
+
+ipcMain.handle('make-bill', async(_, {employeeId, productIds, subTotal, discount, finalTotal, date}) => {
+  try{
+    console.log("make-bill", employeeId, productIds, subTotal, discount, finalTotal, date)
+    return { success: true, message: 'Bill added successfully!' }
+  }catch(e){
+    return { success: false, message: (e as Error).message }
+  }
+})
+
 
 ipcMain.handle('get-users', () => {
   const users = db.prepare('SELECT * FROM users')

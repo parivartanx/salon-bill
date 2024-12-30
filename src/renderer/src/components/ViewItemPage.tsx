@@ -1,31 +1,28 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useForm, SubmitHandler } from 'react-hook-form';
+import { Product } from '../types/Product';
+import { useProductStore } from '@renderer/stores/product-store';
 
 type SearchFormData = {
   search: string;
 };
 
-type Product = {
-  id: string;
-  name: string;
-  price: string;
-  description: string; // Added description
-};
+
 
 const ViewItemPage: React.FC = () => {
-  const [products, setProducts] = useState<Product[]>([
-    { id: '001', name: 'Burger', price: '$8.99', description: 'Delicious beef burger with cheese' },
-    { id: '002', name: 'Pizza', price: '$12.99', description: 'Cheesy pepperoni pizza' },
-    { id: '003', name: 'Chicken Biriyani', price: '$15.99', description: 'Flavorful rice and chicken dish' },
-    { id: '004', name: 'Pasta', price: '$7.99', description: 'Italian-style pasta with marinara sauce' },
-    { id: '005', name: 'Salad', price: '$5.99', description: 'Fresh vegetable salad with dressing' },
-  ]);
+  const { products, addProduct,getAllProducts,removeProduct,updateProduct} = useProductStore();
 
   const [filteredProducts, setFilteredProducts] = useState<Product[]>(products);
   const { register, handleSubmit } = useForm<SearchFormData>();
   const [showForm, setShowForm] = useState(false);
   const [editMode, setEditMode] = useState(false);
   const [currentProduct, setCurrentProduct] = useState<Product | null>(null);
+
+  useEffect(() => {
+    getAllProducts().then((data) => {
+      setFilteredProducts(data);
+    })
+  }, [getAllProducts,]);
 
   const onSearch: SubmitHandler<SearchFormData> = (data) => {
     const filtered = products.filter((product) =>
@@ -38,22 +35,17 @@ const ViewItemPage: React.FC = () => {
     e.preventDefault();
     if (currentProduct?.name && currentProduct?.price && currentProduct?.description) {
       if (editMode) {
-        setProducts((prev) =>
-          prev.map((prod) =>
-            prod.id === currentProduct.id ? currentProduct : prod
-          )
-        );
+        updateProduct(currentProduct);
+        getAllProducts().then((data) => {
+          setFilteredProducts(data);
+        })
         setEditMode(false);
       } else {
-        setProducts((prev) => [
-          ...prev,
-          {
-            ...currentProduct,
-            id: (products.length + 1).toString().padStart(3, '0'),
-          },
-        ]);
+        addProduct(currentProduct);
+        getAllProducts().then((data) => {
+          setFilteredProducts(data);
+        })
       }
-      setFilteredProducts(products);
       setCurrentProduct(null);
       setShowForm(false);
     } else {
@@ -67,10 +59,11 @@ const ViewItemPage: React.FC = () => {
     setShowForm(true);
   };
 
-  const handleDeleteProduct = (id: string) => {
-    const updatedProducts = products.filter((product) => product.id !== id);
-    setProducts(updatedProducts);
-    setFilteredProducts(updatedProducts);
+  const handleDeleteProduct = (id: number) => {
+    console.log('remove product', id);
+    removeProduct(id);
+    setFilteredProducts((prev) => prev.filter((product) => product.id !== id));
+    
   };
 
   return (
@@ -90,7 +83,7 @@ const ViewItemPage: React.FC = () => {
         <button
           type="button"
           onClick={() => {
-            setCurrentProduct({ id: '', name: '', price: '', description: '' });
+            setCurrentProduct({ id:1, name: '', price: 1, description: '' });
             setEditMode(false);
             setShowForm(true);
           }}
@@ -151,7 +144,7 @@ const ViewItemPage: React.FC = () => {
               {editMode ? 'Edit Product' : 'Add Product'}
             </h2>
             <form onSubmit={handleAddOrUpdateProduct}>
-              <div className="mb-4">
+              {/* <div className="mb-4">
                 <label className="block mb-2 font-medium">Product ID</label>
                 <input
                   type="text"
@@ -163,7 +156,7 @@ const ViewItemPage: React.FC = () => {
                   disabled
                   className="w-full px-3 py-2 border rounded-lg bg-gray-100"
                 />
-              </div>
+              </div> */}
               <div className="mb-4">
                 <label className="block mb-2 font-medium">Name</label>
                 <input
@@ -188,7 +181,7 @@ const ViewItemPage: React.FC = () => {
                   onChange={(e) =>
                     setCurrentProduct((prev) => ({
                       ...prev!,
-                      price: e.target.value,
+                      price: parseFloat(e.target.value),
                     }))
                   }
                   className="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"

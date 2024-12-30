@@ -1,4 +1,4 @@
-import { Employee } from '@renderer/types/Employee';
+import { Employee } from '../types/Employee';
 import React, { useEffect, useState } from 'react';
 import { useForm, Controller, SubmitHandler } from 'react-hook-form';
 import { useEmployeeStore } from '@renderer/stores/employee-store';
@@ -6,7 +6,7 @@ import { useEmployeeStore } from '@renderer/stores/employee-store';
 
 const EmployeeListPage: React.FC = () => {
   /// store initialization
-  const {addEmployee,employees,getAllEmployees} = useEmployeeStore()
+  const {addEmployee,employees,getAllEmployees,removeEmployee,updateEmployee} = useEmployeeStore()
   
   useEffect(() => {
     getAllEmployees()
@@ -23,11 +23,7 @@ const EmployeeListPage: React.FC = () => {
 
   const onSubmit: SubmitHandler<Employee> = (data) => {
     if (editMode && currentEmployee) {
-      // setEmployees((prev) =>
-      //   prev.map((emp) =>
-      //     emp.id === currentEmployee.id ? { ...data, id: emp.id } : emp
-      //   )
-      // );
+      updateEmployee(data)
       setEditMode(false);
     } else {
       addEmployee(data)
@@ -45,6 +41,7 @@ const EmployeeListPage: React.FC = () => {
 
   const handleDeleteEmployee = (id: number) => {
     console.log("remove employee", id)
+    removeEmployee(id)
     // setEmployees((prev) => prev.filter((employee) => employee.id !== id));
   };
 
