@@ -16,28 +16,32 @@ interface Totals {
 
 interface FormData {
   customerName?: string
-  phone?: string // Make phone optional
+  phone?: string
   selectedEmployee: string
   discount: number
 }
 
 const BillPage: React.FC = () => {
   const { control, handleSubmit, watch, formState: { errors } } = useForm<FormData>()
-  const {employees,getAllEmployees } = useEmployeeStore()
+  const { employees, getAllEmployees } = useEmployeeStore()
 
-  const [discountType, setDiscountType] = useState<'flat' | 'percentage'>('flat') // Default discount type
-  const [products, setProducts] = useState<Product[]>([{ productId: '', productName: '', price: 0 }])
+  const [discountType, setDiscountType] = useState<'flat' | 'percentage'>('flat')
+  const [products, setProducts] = useState<Product[]>([])
   const [totals, setTotals] = useState<Totals>({ subtotal: 0, discountAmount: 0, grandTotal: 0 })
-  // const [employeeList] = useState(['Alice', 'Bob', 'Charlie', 'Diana']) // Replace with your employee list
+  const [dialogOpen, setDialogOpen] = useState(false)
+  const [allProducts, setAllProducts] = useState<Product[]>([
+    { productId: '1', productName: 'Product A', price: 100 },
+    { productId: '2', productName: 'Product B', price: 200 },
+    { productId: '3', productName: 'Product C', price: 300 },
+  ])
+  const [searchTerm, setSearchTerm] = useState('')
   const watchDiscount = watch('discount', 0)
 
   useEffect(() => {
     getAllEmployees()
-  })
+  }, [])
 
-  // Recalculate totals whenever products or discount changes
   useEffect(() => {
-    
     const calculateTotal = (discount: number) => {
       const subtotal = products.reduce((total, product) => total + product.price, 0)
 
@@ -55,21 +59,18 @@ const BillPage: React.FC = () => {
     calculateTotal(Number(watchDiscount))
   }, [products, watchDiscount, discountType])
 
-  const handleAddProduct = () => {
-    setProducts([...products, { productId: '', productName: '', price: 0 }])
+  const handleAddProduct = (product: Product) => {
+    setProducts([...products, product])
+    setDialogOpen(false)
   }
 
   const handleRemoveProduct = (index: number) => {
     setProducts((prevProducts) => prevProducts.filter((_, i) => i !== index))
   }
 
-  const handleProductChange = (index: number, field: string, value: string | number) => {
-    setProducts((prevProducts) => {
-      const updatedProducts = [...prevProducts]
-      updatedProducts[index] = { ...updatedProducts[index], [field]: value }
-      return updatedProducts
-    })
-  }
+  const filteredProducts = allProducts.filter((product) =>
+    product.productName.toLowerCase().includes(searchTerm.toLowerCase())
+  )
 
   const onSubmit: SubmitHandler<FormData> = (data) => {
     const { customerName, phone, selectedEmployee } = data
@@ -135,7 +136,7 @@ const BillPage: React.FC = () => {
           <Controller
             name="selectedEmployee"
             control={control}
-            defaultValue={employees[0].id.toString()}
+            defaultValue={employees[0]?.id?.toString() || ''}
             render={({ field }) => (
               <select
                 {...field}
@@ -153,68 +154,30 @@ const BillPage: React.FC = () => {
 
         {/* Products Section */}
         <div>
-          <label className="block mb-2 font-medium">Products</label>
-          <table className="w-full border-collapse mb-4">
-            <thead>
-              <tr className="bg-gray-100">
-                <th className="p-3 text-left">Product ID</th>
-                <th className="p-3 text-left">Product Name</th>
-                <th className="p-3 text-left">Price</th>
-                <th className="p-3 text-left">Actions</th>
-              </tr>
-            </thead>
-            <tbody>
-              {products.map((product, index) => (
-                <tr key={index} className="border-b">
-                  <td className="p-3">
-                    <input
-                      type="text"
-                      value={product.productId}
-                      onChange={(e) => handleProductChange(index, 'productId', e.target.value)}
-                      className="w-full px-2 py-1 border rounded"
-                      placeholder="Product ID"
-                    />
-                  </td>
-                  <td className="p-3">
-                    <input
-                      type="text"
-                      value={product.productName}
-                      onChange={(e) => handleProductChange(index, 'productName', e.target.value)}
-                      className="w-full px-2 py-1 border rounded"
-                      placeholder="Product Name"
-                    />
-                  </td>
-                  <td className="p-3">
-                    <input
-                      type="number"
-                      value={product.price || ''}
-                      onChange={(e) =>
-                        handleProductChange(index, 'price', Number(e.target.value) || 0)
-                      }
-                      className="w-full px-2 py-1 border rounded"
-                      placeholder="Price"
-                    />
-                  </td>
-                  <td className="p-3">
-                    <button
-                      type="button"
-                      onClick={() => handleRemoveProduct(index)}
-                      className="text-red-500 hover:text-red-700"
-                    >
-                      Remove
-                    </button>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
           <button
             type="button"
-            onClick={handleAddProduct}
+            onClick={() => setDialogOpen(true)}
             className="bg-blue-500 text-white px-4 py-2 rounded-lg hover:bg-blue-600 transition"
           >
-            Add Product
+            Add Products
           </button>
+          <div className="mt-4">
+            {products.map((product, index) => (
+              <div key={index} className="flex justify-between items-center border-b py-2">
+                <div>
+                  <p className="font-medium">{product.productName}</p>
+                  <p className="text-sm text-gray-600">₹{product.price.toFixed(2)}</p>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => handleRemoveProduct(index)}
+                  className="text-red-500 hover:text-red-700"
+                >
+                  Remove
+                </button>
+              </div>
+            ))}
+          </div>
         </div>
 
         {/* Discount Field */}
@@ -264,6 +227,40 @@ const BillPage: React.FC = () => {
           Generate Bill
         </button>
       </form>
+
+      {/* Product Dialog */}
+      {dialogOpen && (
+        <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50">
+          <div className="bg-white p-6 rounded-lg shadow-lg max-w-md w-full">
+            <h3 className="text-lg font-bold mb-4">Select Product</h3>
+            <input
+              type="text"
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="w-full mb-4 px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+              placeholder="Search product..."
+            />
+            <div className="space-y-2">
+              {filteredProducts.map((product) => (
+                <div
+                  key={product.productId}
+                  className="flex justify-between items-center p-2 border rounded hover:bg-gray-100 cursor-pointer"
+                  onClick={() => handleAddProduct(product)}
+                >
+                  <span>{product.productName}</span>
+                  <span>₹{product.price.toFixed(2)}</span>
+                </div>
+              ))}
+            </div>
+            <button
+              onClick={() => setDialogOpen(false)}
+              className="mt-4 bg-gray-500 text-white px-4 py-2 rounded-lg hover:bg-gray-600"
+            >
+              Close
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   )
 }
