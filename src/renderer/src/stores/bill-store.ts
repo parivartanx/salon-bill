@@ -12,6 +12,7 @@ export interface BillStore{
 
 export const useBillStore = create<BillStore>((set,get) => ({
     bills: [],
+
     addBill: async (bill) => {
         try {
             const response = await window.electron.ipcRenderer.invoke('make-bill', bill)
@@ -22,7 +23,7 @@ export const useBillStore = create<BillStore>((set,get) => ({
                 }))
                 return;
             }
-            console.log(response.message);
+            console.log(response);
         } catch (error) {
             console.log(error);
             return;

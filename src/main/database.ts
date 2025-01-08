@@ -68,16 +68,23 @@ db.prepare(
 )`
 ).run()
 
+// db.prepare(`
+//    DROP TABLE Bill 
+//   `).run();
+
 db.prepare(`
-  CREATE TABLE IF NOT EXISTS Bill (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
-    employeeId INTEGER NOT NULL,
-    subTotal REAL NOT NULL,
-    discount REAL DEFAULT 0,
-    finalTotal REAL NOT NULL,
-    date TEXT NOT NULL,
-    FOREIGN KEY (employeeId) REFERENCES Employee(id)
-  )
+ CREATE TABLE IF NOT EXISTS Bill (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  employeeId INTEGER NOT NULL,
+  productIds TEXT,
+  customerName TEXT,
+  customerPhone TEXT,
+  subTotal REAL NOT NULL,
+  discount REAL DEFAULT 0,
+  finalTotal REAL NOT NULL,
+  date TEXT NOT NULL,
+  FOREIGN KEY (employeeId) REFERENCES Employee(id)
+);
 `).run();
 
 db.prepare(`
@@ -93,3 +100,12 @@ db.prepare(`
 
 console.log('SQLite3 database initialized.')
 export default db
+
+
+export interface Product {
+  id: number,
+  name: string
+  price: number
+  description: string
+}
+

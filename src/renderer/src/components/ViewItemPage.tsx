@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { useForm, SubmitHandler } from 'react-hook-form';
 import { Product } from '../types/Product';
-import { useProductStore } from '@renderer/stores/product-store';
+import { useProductStore } from '../stores/product-store';
 
 type SearchFormData = {
   search: string;

@@ -1,7 +1,7 @@
 import { Employee } from '../types/Employee';
 import React, { useEffect, useState } from 'react';
 import { useForm, Controller, SubmitHandler } from 'react-hook-form';
-import { useEmployeeStore } from '@renderer/stores/employee-store';
+import { useEmployeeStore } from '../stores/employee-store';
 
 
 const EmployeeListPage: React.FC = () => {

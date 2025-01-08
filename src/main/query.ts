@@ -59,17 +59,45 @@ export const updateProduct = async(id: number, name: string, price: number, desc
 }
 
 /// Bill queries
-export const makeBill = async(employeeId: number, subTotal: number, discount: number, finalTotal: number, date: string,productIds:string[]) => {
-    const insert = await db.prepare('INSERT INTO Bill (employeeId, subTotal, discount, finalTotal, date) VALUES (?, ?, ?, ?, ?)')
-    const billResponse = insert.run(employeeId, subTotal, discount, finalTotal, date)
-    const billId = billResponse.lastInsertRowid
-
-
-    for(const productId of productIds){
-        const res = await db.prepare('INSERT INTO BillProducts (billId, productId) VALUES (?, ?)').run(billId, productId)
-        console.log("inserted into bill products", res)
+export const makeBill = async(customerName:string,customerPhone:string,employeeId: number, subTotal: number, discount: number, finalTotal: number, date: string,productIds:string[]) => {
+    // Validate employeeId
+    const employeeExists = db.prepare('SELECT id FROM Employee WHERE id = ?').get(employeeId);
+    if (!employeeExists) {
+      throw new Error(`Employee with ID ${employeeId} does not exist.`);
     }
-    return billResponse
+    // Validate productIds
+    for (const productId of productIds) {
+        const productExists = db.prepare('SELECT id FROM Product WHERE id = ?').get(productId);
+        if (!productExists) {
+          throw new Error(`Product with ID ${productId} does not exist.`);
+        }
+      }
+   
+    // Start a transaction
+    const transaction = db.transaction(() => {
+        // Insert the bill
+        const insertBill = db.prepare(`
+          INSERT INTO Bill (customerName, customerPhone, employeeId, subTotal, discount, finalTotal, date) 
+          VALUES (?, ?, ?, ?, ?, ?, ?)
+        `);
+        const billResponse = insertBill.run(customerName, customerPhone, employeeId, subTotal, discount, finalTotal, date);
+        const billId = billResponse.lastInsertRowid;
+  
+        // Insert products into BillProducts
+        const insertBillProduct = db.prepare(`
+          INSERT INTO BillProducts (billId, productId) VALUES (?, ?)
+        `);
+        for (const productId of productIds) {
+          insertBillProduct.run(billId, productId);
+        }
+  
+        return billId;
+      });
+  
+      // Execute the transaction
+      const billId = transaction();
+      console.log(`Bill created successfully with ID: ${billId}`);
+      return billId;
     /// insert into bill products
 }
 

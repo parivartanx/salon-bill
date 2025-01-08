@@ -1,12 +1,15 @@
 import React, { useState, useEffect } from 'react'
 import { useForm, Controller, SubmitHandler } from 'react-hook-form'
-import { useEmployeeStore } from '@renderer/stores/employee-store'
-
-interface Product {
-  productId: string
-  productName: string
-  price: number
-}
+import { useEmployeeStore } from '../stores/employee-store'
+import { useBillStore } from '../stores/bill-store'
+import { useProductStore } from '../stores/product-store'
+import { Product } from '../types/Product'
+import { Bill } from '@renderer/types/Bill'
+// interface Product {
+//   productId: string
+//   productName: string
+//   price: number
+// }
 
 interface Totals {
   subtotal: number
@@ -26,24 +29,29 @@ const BillPage: React.FC = () => {
   const { employees, getAllEmployees } = useEmployeeStore()
 
   const [discountType, setDiscountType] = useState<'flat' | 'percentage'>('flat')
-  const [products, setProducts] = useState<Product[]>([])
+  
+  const {getAllProducts,products} = useProductStore()
+  
   const [totals, setTotals] = useState<Totals>({ subtotal: 0, discountAmount: 0, grandTotal: 0 })
   const [dialogOpen, setDialogOpen] = useState(false)
-  const [allProducts, setAllProducts] = useState<Product[]>([
-    { productId: '1', productName: 'Product A', price: 100 },
-    { productId: '2', productName: 'Product B', price: 200 },
-    { productId: '3', productName: 'Product C', price: 300 },
+  const [selectedProducts, setSelectedProduct] = useState<Product[]>([
+ 
   ])
   const [searchTerm, setSearchTerm] = useState('')
   const watchDiscount = watch('discount', 0)
 
+  const {addBill} = useBillStore()
+
   useEffect(() => {
-    getAllEmployees()
+    getAllEmployees();
+    getAllProducts()
   }, [])
+
+
 
   useEffect(() => {
     const calculateTotal = (discount: number) => {
-      const subtotal = products.reduce((total, product) => total + product.price, 0)
+      const subtotal = selectedProducts.reduce((total, product) => total + product.price, 0)
 
       let discountAmount = 0
       if (discountType === 'percentage') {
@@ -57,23 +65,40 @@ const BillPage: React.FC = () => {
     }
 
     calculateTotal(Number(watchDiscount))
-  }, [products, watchDiscount, discountType])
+  }, [selectedProducts, watchDiscount, discountType])
 
   const handleAddProduct = (product: Product) => {
-    setProducts([...products, product])
+    setSelectedProduct([...selectedProducts, product])
     setDialogOpen(false)
   }
 
   const handleRemoveProduct = (index: number) => {
-    setProducts((prevProducts) => prevProducts.filter((_, i) => i !== index))
+    setSelectedProduct((prevProducts) => prevProducts.filter((_, i) => i !== index))
   }
 
-  const filteredProducts = allProducts.filter((product) =>
-    product.productName.toLowerCase().includes(searchTerm.toLowerCase())
+  const filteredProducts = products.filter((product) =>
+    product.name.toLowerCase().includes(searchTerm.toLowerCase())
   )
 
   const onSubmit: SubmitHandler<FormData> = (data) => {
     const { customerName, phone, selectedEmployee } = data
+    console.log("data",data)
+
+    const selectedProductIds = selectedProducts.map((p)=>p.id)
+
+    const bill:Bill  = {
+      customerName: customerName ?? null,
+      customerPhone:phone ?? null,
+      employeeId:parseInt(selectedEmployee),
+      discount:totals.discountAmount,
+      finalTotal:totals.grandTotal,
+      subTotal:totals.subtotal,
+      productIds:selectedProductIds,
+      date:new Date().toLocaleDateString(),
+
+    }
+    
+    addBill(bill)
     alert(
       `Bill Generated!\n\nCustomer: ${customerName}\nContact: ${phone}\nService By: ${selectedEmployee}\nSubtotal: ₹${totals.subtotal.toFixed(
         2
@@ -162,10 +187,10 @@ const BillPage: React.FC = () => {
             Add Products
           </button>
           <div className="mt-4">
-            {products.map((product, index) => (
+            {selectedProducts.map((product, index) => (
               <div key={index} className="flex justify-between items-center border-b py-2">
                 <div>
-                  <p className="font-medium">{product.productName}</p>
+                  <p className="font-medium">{product.name}</p>
                   <p className="text-sm text-gray-600">₹{product.price.toFixed(2)}</p>
                 </div>
                 <button
@@ -243,11 +268,11 @@ const BillPage: React.FC = () => {
             <div className="space-y-2">
               {filteredProducts.map((product) => (
                 <div
-                  key={product.productId}
+                  key={product.id}
                   className="flex justify-between items-center p-2 border rounded hover:bg-gray-100 cursor-pointer"
                   onClick={() => handleAddProduct(product)}
                 >
-                  <span>{product.productName}</span>
+                  <span>{product.name}</span>
                   <span>₹{product.price.toFixed(2)}</span>
                 </div>
               ))}
