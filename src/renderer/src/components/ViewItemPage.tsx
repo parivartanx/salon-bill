@@ -33,7 +33,7 @@ const ViewItemPage: React.FC = () => {
 
   const handleAddOrUpdateProduct = (e: React.FormEvent) => {
     e.preventDefault();
-    if (currentProduct?.name && currentProduct?.price && currentProduct?.description) {
+    if (currentProduct?.name && currentProduct?.price) {
       if (editMode) {
         updateProduct(currentProduct);
         getAllProducts().then((data) => {
@@ -201,7 +201,6 @@ const ViewItemPage: React.FC = () => {
                   }
                   className="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                   placeholder="Enter Product Description"
-                  required
                 />
               </div>
               <div className="flex justify-end space-x-4">

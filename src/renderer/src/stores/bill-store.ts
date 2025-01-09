@@ -1,18 +1,42 @@
+import { Analytics } from '@renderer/types/Analytics'
 import { Bill } from '@renderer/types/Bill'
 import {create} from 'zustand'
 
 export interface BillStore{
-    bills: Bill[]
+    bills: Bill[],
+    analytics:Analytics|null,
     addBill: (bill: Bill) => Promise<void>
     removeBill: (id: number) => Promise<void>
     getBill: (id: number) => Bill | undefined
     getAllBills: () => Promise<Bill[]>
     updateBill: (bill: Bill) => Promise<void>
+    analyticsReport:()=> Promise<Analytics | null>
+    
 }
 
 export const useBillStore = create<BillStore>((set,get) => ({
     bills: [],
+    analytics:null,
+    analyticsReport: async()=>{
+        try{
+            const response = await window.electron.ipcRenderer.invoke('analytics')
+            const saleReport = await response.data;
+            const analyticsReport:Analytics = {
+                monthlySales:saleReport.monthlySales,
+                todaySales:saleReport.todaySales[0],
+                topProducts:saleReport.topProducts,
+                totalProducts:saleReport.totalProducts.totalProducts,
+                employeeCurrentMonthBill:saleReport.employeeCurrentMonthBill
+            }
 
+            console.log("Analytics report",analyticsReport)
+            set({analytics:analyticsReport})
+            return analyticsReport;
+        }catch(e){
+            console.log("Error in Analytics store ",e);
+            return null;
+        }
+    },
     addBill: async (bill) => {
         try {
             const response = await window.electron.ipcRenderer.invoke('make-bill', bill)
@@ -48,11 +72,10 @@ export const useBillStore = create<BillStore>((set,get) => ({
     },
     getAllBills: async() => {
         try {
-            const response = await window.electron.ipcRenderer.invoke('get-bills', {})
+            const response = await window.electron.ipcRenderer.invoke('bill-history', {})
             if (response.success) {
-                console.log("Get all bills in sucess", response)
-                const data = response.data as Bill[]
-                set({ bills: response.data as Bill[] })
+                const data = response.bills as Bill[]
+                set({ bills: response.bills as Bill[] })
 
                 return data
             }
@@ -64,7 +87,6 @@ export const useBillStore = create<BillStore>((set,get) => ({
     },
     updateBill: async (bill) => {
         try{
-            console.log("update-bill", bill)
             const response = await window.electron.ipcRenderer.invoke('update-bill', bill)
             if(response.success){
                 get().getAllBills()

@@ -1,26 +1,4 @@
-// // database.ts
-// import Database from 'better-sqlite3'
-// import path from 'path'
 
-// const dbPath = path.join(__dirname, 'database.sqlite')
-
-// // Initialize the database
-// const db = new Database(dbPath)
-
-// // Create a sample table if it doesn't exist
-// db.prepare(
-//   `
-//   CREATE TABLE IF NOT EXISTS users (
-//     id INTEGER PRIMARY KEY AUTOINCREMENT,
-//     name TEXT NOT NULL,
-//     email TEXT UNIQUE NOT NULL
-//   )
-// `
-// ).run()
-
-// console.log('SQLite3 database initialized.')
-
-// export default db
 
 import { app } from 'electron'
 import Database from 'better-sqlite3'
@@ -35,16 +13,20 @@ const dbPath = path.join(userDataPath, 'database.sqlite')
 // Initialize the SQLite database
 const db = new Database(dbPath)
 
-// Create a sample table if it doesn't exist
-// db.prepare(
-//   `
-//   CREATE TABLE IF NOT EXISTS users (
-//     id INTEGER PRIMARY KEY AUTOINCREMENT,
-//     name TEXT NOT NULL,
-//     email TEXT UNIQUE NOT NULL
-//   )
-// `
-// ).run()
+
+// drop tables
+// Clean the database by dropping all tables
+const cleanDatabase = () => {
+  db.exec(`
+    DROP TABLE IF EXISTS BillProducts;
+    DROP TABLE IF EXISTS Bill;
+    DROP TABLE IF EXISTS Product;
+    DROP TABLE IF EXISTS Employee;
+  `);
+  console.log('Database cleaned: All tables dropped.');
+};
+
+// cleanDatabase()
 
 /// create table if not exist for items
 
@@ -73,7 +55,7 @@ db.prepare(
 //   `).run();
 
 db.prepare(`
- CREATE TABLE IF NOT EXISTS Bill (
+CREATE TABLE IF NOT EXISTS Bill (
   id INTEGER PRIMARY KEY AUTOINCREMENT,
   employeeId INTEGER NOT NULL,
   productIds TEXT,
@@ -83,7 +65,7 @@ db.prepare(`
   discount REAL DEFAULT 0,
   finalTotal REAL NOT NULL,
   date TEXT NOT NULL,
-  FOREIGN KEY (employeeId) REFERENCES Employee(id)
+  FOREIGN KEY (employeeId) REFERENCES Employee(id) ON DELETE CASCADE
 );
 `).run();
 
@@ -92,8 +74,8 @@ db.prepare(`
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     billId INTEGER NOT NULL,
     productId INTEGER NOT NULL,
-    FOREIGN KEY (billId) REFERENCES Bill(id),
-    FOREIGN KEY (productId) REFERENCES Product(id)
+    FOREIGN KEY (billId) REFERENCES Bill(id) ON DELETE CASCADE,
+    FOREIGN KEY (productId) REFERENCES Product(id) ON DELETE CASCADE
   )
 `).run();
 

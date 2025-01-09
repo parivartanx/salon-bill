@@ -2,7 +2,7 @@ import { app, shell, BrowserWindow, ipcMain } from 'electron'
 import { join } from 'path'
 import { electronApp, optimizer, is } from '@electron-toolkit/utils'
 import icon from '../../resources/icon.png?asset'
-import db, { Product } from './database'
+import { Product } from './database'
 // eslint-disable-next-line @typescript-eslint/no-require-imports
 const escpos = require('escpos');
 // eslint-disable-next-line @typescript-eslint/no-require-imports
@@ -12,7 +12,9 @@ import { addEmployee,getEmployees,deleteEmployee, addProduct,getProducts,deleteP
   updateProduct,
   updateEmployee,
   makeBill,
-  getProduct
+  getProduct,
+  getBillHistory,
+  analyticsReport
 
 } from './query'
 
@@ -222,14 +224,8 @@ ipcMain.handle('make-bill', async(_, {customerPhone,customerName,employeeId, pro
     for(let i = 0;i < productIds.length; i++){
       const item = await getProduct(productIds[i])
       items.push(item)
-    }
-
-
-
-    
-    console.log("Items",items)
-    console.log("bill details",customerPhone,customerName,employeeId,productIds,subTotal,discount,finalTotal,date)
-    const invoiceNo = await makeBill(customerPhone,customerName,employeeId, productIds, subTotal, discount, finalTotal, date)
+    }    
+    const invoiceNo = await makeBill(customerName,customerPhone,employeeId,subTotal,discount,finalTotal,date,productIds)
     const devices = new escpos.USB.findPrinter();
     if(devices.length === 0 ){
       throw new Error("Please connect printer");
@@ -239,34 +235,41 @@ ipcMain.handle('make-bill', async(_, {customerPhone,customerName,employeeId, pro
     // encoding is optional
     const device = new escpos.USB()
     const printer = new escpos.Printer(device, options)
-    console.log("Device from usb ")
     // const options = { encoding: "GB18030" /* default */ }
     device.open(function (error) {
       if (error) {
-        console.log('Device open error', error);
+        console.log("Device open error", error);
         return;
       }
     
-      // Constants for discount and GST
-      // const discountPercentage = 10; // 10% discount
-      // const gstPercentage = 18; // 18% GST
+      const lineWidth = 40; // Adjust to match your printer's character width
+      const columnWidths = { id: 5, name: 20, price: 10 }; // Adjust column widths
+    
+      // Utility to pad strings
+      const padText = (text, width, align = "left") => {
+        if (align === "right") {
+          return text.toString().padStart(width, " ");
+        } else {
+          return text.toString().padEnd(width, " ");
+        }
+      };
     
       // Print Header
       printer
-        .font('a')
-        .align('ct')
-        .style('bu')
+        .font("a")
+        .align("ct")
+        .style("bu")
         .size(0.5, 0.5)
-        .text('Classic Touch Salon') // Salon name
-        .style('normal')
-        .text('Address: 123, Main Road, Patna')
-        .text('Phone: +91 9876543210')
+        .text("Classic Touch Mens Salon") // Salon name
+        .style("normal")
+        .text("Congress Maidan Road Kadam Kuan Patna")
+        .text("Mobile & WhatsApp: +91 9473450671")
         .drawLine();
     
       // Print Billing Details Header
       printer
-        .align('lt')
-        .text(`Date: ${date}    Time: ${new Date().toLocaleTimeString()}`)
+        .align("lt")
+        .text(`Date: ${new Date().toLocaleDateString()}    Time: ${new Date().toLocaleTimeString()}`)
         .text(`Invoice No: INV-00${invoiceNo}`)
         .text(`Customer Name: ${customerName ?? "NA"}`)
         .text(`Customer Phone: ${customerPhone ?? "NA"}`)
@@ -274,38 +277,46 @@ ipcMain.handle('make-bill', async(_, {customerPhone,customerName,employeeId, pro
     
       // Column Headers
       printer
-        .text('Id   Item                        Amount')
+        .text(
+          padText("Id", columnWidths.id) +
+            padText("Item", columnWidths.name) +
+            padText("Amount", columnWidths.price, "right")
+        )
         .drawLine();
     
-      // Sample Billing Items
-      
-    
-    
+      // Print Billing Items
       items.forEach((item) => {
-
-        printer.text(`${item.id} ${item.name.padEnd(20)}${item.price.toFixed(2)}`);
+        printer.text(
+          padText(item.id, columnWidths.id) +
+            padText(item.name, columnWidths.name) +
+            padText(item.price.toFixed(2), columnWidths.price, "right")
+        );
       });
     
-      // Calculate discount
-    
-      // Calculate GST
-    
-      // Final total
-    
-      // Print Discount, GST, and Final Total
-      printer
-        .drawLine()
-        .text(`Subtotal: `.padEnd(30) + `${subTotal.toFixed(2)}`)
-        .text(`Discount: `.padEnd(30) + `-${discount.toFixed(2)}`)
-        .drawLine()
-        .text(`Final Total: `.padEnd(30) + `${finalTotal.toFixed(2)}`)
-        .drawLine();
+      // Calculate and Print Totals
+      printer.drawLine();
+      printer.text(
+        padText("Subtotal:", lineWidth - 10) +
+          padText(subTotal.toFixed(2), 10, "right")
+      );
+      printer.text(
+        padText("Discount:", lineWidth - 10) +
+          padText(`-${discount.toFixed(2)}`, 10, "right")
+      );
+      printer.drawLine();
+      printer.text(
+        padText("Final Total:", lineWidth - 10) +
+          padText(finalTotal.toFixed(2), 10, "right")
+      );
+      printer.drawLine();
     
       // Footer
       printer
-        .align('ct')
-        .text('Thank you for visiting!')
-        .text('We hope to see you again!')
+        .align("ct")
+        .text("Thank you for visiting!")
+        .text("We hope to see you again!")
+        .text("")
+        .text("Designed By: parivartanx.com")
         .cut()
         .close();
     });
@@ -318,9 +329,34 @@ ipcMain.handle('make-bill', async(_, {customerPhone,customerName,employeeId, pro
 })
 
 
-ipcMain.handle('get-users', () => {
-  const users = db.prepare('SELECT * FROM users')
-  return users.all()
+
+ipcMain.handle('bill-history',async()=>{
+  try {
+    const bills = await getBillHistory();
+    return {
+      success:true,
+      bills,
+    }
+  }catch(e){
+    return {
+      success:false,message:(e as Error).message
+    }
+  }
+})
+
+ipcMain.handle('analytics',async()=> {
+  try{
+    const report = await analyticsReport()
+    return {
+      success:true,
+      data:report
+    }
+  }catch(e){
+    return {
+      success:true,
+      message:(e as Error).message
+    }
+  }
 })
 
 // Quit when all windows are closed, except on macOS. There, it's common

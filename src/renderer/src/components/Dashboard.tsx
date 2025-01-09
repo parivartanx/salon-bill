@@ -1,9 +1,24 @@
 import { ApexOptions } from 'apexcharts'
-import React from 'react'
+import React, { useCallback, useEffect, useState } from 'react'
 import ReactApexChart from 'react-apexcharts'
-
+import { useBillStore } from '../stores/bill-store'
+import { Analytics } from '@renderer/types/Analytics'
 const Dashboard: React.FC = () => {
+  const {analyticsReport} = useBillStore()
+
+  const [analytics,setAnalytics] = useState<Analytics|null>()
+
+  const getAnalyticsReport = useCallback(async()=>{
+    const report = await analyticsReport()
+    setAnalytics(report)
+  },[])
   // Bar Chart Configuration (Monthly Sales)
+  useEffect(()=>{
+    getAnalyticsReport()
+    
+  },[])
+
+
   const barChartOptions: ApexOptions = {
     chart: {
       type: 'bar',
@@ -11,7 +26,7 @@ const Dashboard: React.FC = () => {
     },
     colors: ['#1C64F2', '#16BDCA'],
     xaxis: {
-      categories: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun'],
+      categories: analytics ? analytics.monthlySales.map((sale)=>sale.month):[],
     },
     title: {
       text: 'Monthly Sales',
@@ -30,25 +45,22 @@ const Dashboard: React.FC = () => {
   const barChartSeries = [
     {
       name: 'Sales',
-      data: [450, 650, 800, 700, 850, 1000],
+      data: analytics ? analytics.monthlySales.map((sale)=>sale.totalSales):[],
     },
-    {
-      name: 'Orders',
-      data: [120, 150, 200, 170, 250, 300],
-    },
+   
   ]
 
   // Donut Chart Configuration (Traffic Sources)
-  const donutChartSeries = [450, 300, 150, 100] // Raw data
+  const donutChartSeries = analytics ? analytics.employeeCurrentMonthBill.map((employee)=> employee.totalSalesAmount) : []; // Raw data
 
   const donutChartOptions: ApexOptions = {
     chart: {
       type: 'donut',
     },
-    labels: ['Amit', 'Sumit', 'Rakesh', 'Mukesh'],
+    labels: analytics ? analytics.employeeCurrentMonthBill.map((emp)=> emp.employeeName) : [],
     colors: ['#F97316', '#34D399', '#3B82F6', '#F43F5E'],
     title: {
-      text: 'Service By',
+      text: 'Service By (Current Month)',
       align: 'center',
       style: {
         fontSize: '16px',
@@ -95,10 +107,7 @@ const Dashboard: React.FC = () => {
     },
     colors: ['#F43F5E', '#F97316', '#FACC15', '#34D399', '#3B82F6', '#8B5CF6', '#FF66B2', '#66B2FF', '#FF3366', '#FF9933'], // Different colors for each category
     xaxis: {
-      categories: [
-        'Haircut', 'Hairstyling', 'Hair Treatments', 'Facials', 'Waxing',
-        'Threading', 'Manicures', 'Pedicures', 'Head Massage', 'Full Body Massage'
-      ], // Top 10 best-selling categories
+      categories: analytics?.topProducts.map((report)=>report.productName), // Top 10 best-selling categories
     },
     title: {
       text: 'Best Selling Categories',
@@ -122,7 +131,7 @@ const Dashboard: React.FC = () => {
   const categoryChartSeries = [
     {
       name: 'Sales',
-      data: [800, 650, 500, 400, 300, 250, 200, 150, 100, 50], // Sales data for top 10 categories
+      data: analytics ? analytics.topProducts.map((product)=>product!.totalSold) : [], // Sales data for top 10 categories
     },
   ]
 
@@ -133,11 +142,11 @@ const Dashboard: React.FC = () => {
         {/* Summary Cards */}
         <div className="bg-blue-100 p-4 rounded-lg">
           <h3 className="text-lg font-semibold">Today&apos;s Sales</h3>
-          <p className="text-2xl font-bold text-blue-600">₹1,250.00</p>
+          <p className="text-2xl font-bold text-blue-600">₹ {analytics ? analytics.todaySales.totalSales : 0}</p>
         </div>
         <div className="bg-green-100 p-4 rounded-lg">
           <h3 className="text-lg font-semibold">Total Service</h3>
-          <p className="text-2xl font-bold text-green-600">42</p>
+          <p className="text-2xl font-bold text-green-600"> {analytics ? analytics.totalProducts : 0}</p>
         </div>
       </div>
 

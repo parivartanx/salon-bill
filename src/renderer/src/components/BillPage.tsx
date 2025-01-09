@@ -43,7 +43,9 @@ const BillPage: React.FC = () => {
   const {addBill} = useBillStore()
 
   useEffect(() => {
-    getAllEmployees();
+    getAllEmployees().then(()=>{
+      
+    });
     getAllProducts()
   }, [])
 
@@ -94,7 +96,7 @@ const BillPage: React.FC = () => {
       finalTotal:totals.grandTotal,
       subTotal:totals.subtotal,
       productIds:selectedProductIds,
-      date:new Date().toLocaleDateString(),
+      date:new Date().toISOString(),
 
     }
     
