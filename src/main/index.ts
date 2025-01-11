@@ -2,7 +2,7 @@ import { app, shell, BrowserWindow, ipcMain } from 'electron'
 import { join } from 'path'
 import { electronApp, optimizer, is } from '@electron-toolkit/utils'
 import icon from '../../resources/icon.png?asset'
-import { Product } from './database'
+import { Employee, Product } from './database'
 // eslint-disable-next-line @typescript-eslint/no-require-imports
 const escpos = require('escpos');
 // eslint-disable-next-line @typescript-eslint/no-require-imports
@@ -14,7 +14,8 @@ import { addEmployee,getEmployees,deleteEmployee, addProduct,getProducts,deleteP
   makeBill,
   getProduct,
   getBillHistory,
-  analyticsReport
+  analyticsReport,
+  getEmployee
 
 } from './query'
 
@@ -121,7 +122,7 @@ app.whenReady().then(() => {
 // })
 
 
-ipcMain.handle('add-employee', async(event, { name, phone, email }) => {
+ipcMain.handle('add-employee', async(_, { name, phone, email }) => {
   try {
     const response = await addEmployee(name,phone,email)
     if(response.changes === 0) {
@@ -142,7 +143,7 @@ ipcMain.handle('get-employees', async() => {
   }
 })
 
-ipcMain.handle('delete-employee', async(event, {id}) => {
+ipcMain.handle('delete-employee', async(_, {id}) => {
   try {
     const response = await deleteEmployee(id)
     if(response.changes === 0) {
@@ -154,7 +155,7 @@ ipcMain.handle('delete-employee', async(event, {id}) => {
   }
 })
 
-ipcMain.handle('update-employee', async(event, {id, name, phone, email}) => {
+ipcMain.handle('update-employee', async(_, {id, name, phone, email}) => {
   try {
     console.log("update-employee", id, name, phone, email)
     const response = await updateEmployee(id, name, phone, email)
@@ -170,7 +171,7 @@ ipcMain.handle('update-employee', async(event, {id, name, phone, email}) => {
 
 
 /// Product IPC handlers
-ipcMain.handle('add-product', async(event, { name, price, description }) => {
+ipcMain.handle('add-product', async(_, { name, price, description }) => {
   try {
     console.log("add-product", name, price, description)
     const response = await addProduct(name,price,description)
@@ -193,7 +194,7 @@ ipcMain.handle('get-products', async() => {
   }
 })
 
-ipcMain.handle('delete-product', async(event, {id}) => {
+ipcMain.handle('delete-product', async(_, {id}) => {
   try {
     const response = await deleteProduct(id)
     if(response.changes === 0) {
@@ -205,7 +206,7 @@ ipcMain.handle('delete-product', async(event, {id}) => {
   }
 })
 
-ipcMain.handle('update-product', async(event, {id, name, price, description}) => {
+ipcMain.handle('update-product', async(_, {id, name, price, description}) => {
   try {
     const response = await updateProduct(id, name, price, description)
     if(response.changes === 0) {
@@ -224,7 +225,8 @@ ipcMain.handle('make-bill', async(_, {customerPhone,customerName,employeeId, pro
     for(let i = 0;i < productIds.length; i++){
       const item = await getProduct(productIds[i])
       items.push(item)
-    }    
+    }   
+    const employee:Employee = await getEmployee(employeeId) 
     const invoiceNo = await makeBill(customerName,customerPhone,employeeId,subTotal,discount,finalTotal,date,productIds)
     const devices = new escpos.USB.findPrinter();
     if(devices.length === 0 ){
@@ -269,10 +271,11 @@ ipcMain.handle('make-bill', async(_, {customerPhone,customerName,employeeId, pro
       // Print Billing Details Header
       printer
         .align("lt")
-        .text(`Date: ${new Date().toLocaleDateString()}    Time: ${new Date().toLocaleTimeString()}`)
+        .text(`Date: ${new Date(date).toLocaleDateString()}    Time: ${new Date().toLocaleTimeString()}`)
         .text(`Invoice No: INV-00${invoiceNo}`)
         .text(`Customer Name: ${customerName ?? "NA"}`)
         .text(`Customer Phone: ${customerPhone ?? "NA"}`)
+        .text(`Service By ${employee.name ?? "NA"}`)
         .drawLine();
     
       // Column Headers
@@ -309,6 +312,7 @@ ipcMain.handle('make-bill', async(_, {customerPhone,customerName,employeeId, pro
           padText(finalTotal.toFixed(2), 10, "right")
       );
       printer.drawLine();
+
     
       // Footer
       printer

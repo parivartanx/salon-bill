@@ -5,6 +5,7 @@ import { useBillStore } from '../stores/bill-store'
 import { useProductStore } from '../stores/product-store'
 import { Product } from '../types/Product'
 import { Bill } from '@renderer/types/Bill'
+import toast from 'react-hot-toast'
 // interface Product {
 //   productId: string
 //   productName: string
@@ -22,34 +23,40 @@ interface FormData {
   phone?: string
   selectedEmployee: string
   discount: number
+  billDate: string
 }
 
 const BillPage: React.FC = () => {
-  const { control, handleSubmit, watch, formState: { errors } } = useForm<FormData>()
+  const {
+    control,
+    handleSubmit,
+    watch,
+    formState: { errors }
+  } = useForm<FormData>()
   const { employees, getAllEmployees } = useEmployeeStore()
 
+  const [selectedEmployeeId, setSelectedEmployeeId] = useState(0)
+
   const [discountType, setDiscountType] = useState<'flat' | 'percentage'>('flat')
-  
-  const {getAllProducts,products} = useProductStore()
-  
+
+  const { getAllProducts, products } = useProductStore()
+
   const [totals, setTotals] = useState<Totals>({ subtotal: 0, discountAmount: 0, grandTotal: 0 })
   const [dialogOpen, setDialogOpen] = useState(false)
-  const [selectedProducts, setSelectedProduct] = useState<Product[]>([
- 
-  ])
+  const [selectedProducts, setSelectedProduct] = useState<Product[]>([])
   const [searchTerm, setSearchTerm] = useState('')
   const watchDiscount = watch('discount', 0)
 
-  const {addBill} = useBillStore()
+  const { addBill } = useBillStore()
 
   useEffect(() => {
-    getAllEmployees().then(()=>{
-      
-    });
+    getAllEmployees().then(() => {
+      if (employees.length > 0) {
+        setSelectedEmployeeId(employees[0].id)
+      }
+    })
     getAllProducts()
   }, [])
-
-
 
   useEffect(() => {
     const calculateTotal = (discount: number) => {
@@ -83,26 +90,30 @@ const BillPage: React.FC = () => {
   )
 
   const onSubmit: SubmitHandler<FormData> = (data) => {
-    const { customerName, phone, selectedEmployee } = data
-    console.log("data",data)
+    const { customerName, phone, selectedEmployee, billDate } = data
 
-    const selectedProductIds = selectedProducts.map((p)=>p.id)
-
-    const bill:Bill  = {
-      customerName: customerName ?? null,
-      customerPhone:phone ?? null,
-      employeeId:parseInt(selectedEmployee),
-      discount:totals.discountAmount,
-      finalTotal:totals.grandTotal,
-      subTotal:totals.subtotal,
-      productIds:selectedProductIds,
-      date:new Date().toISOString(),
-
+    if (totals.subtotal === 0) {
+      toast.error('Please enter amount')
+      return
     }
-    
+    console.log(billDate)
+
+    const selectedProductIds = selectedProducts.map((p) => p.id)
+
+    const bill: Bill = {
+      customerName: customerName ?? null,
+      customerPhone: phone ?? null,
+      employeeId: selectedEmployee !== 'NA' ? parseInt(selectedEmployee) : selectedEmployeeId,
+      discount: totals.discountAmount,
+      finalTotal: totals.grandTotal,
+      subTotal: totals.subtotal,
+      productIds: selectedProductIds,
+      date: new Date(billDate).toISOString()
+    }
+
     addBill(bill)
     alert(
-      `Bill Generated!\n\nCustomer: ${customerName}\nContact: ${phone}\nService By: ${selectedEmployee}\nSubtotal: ₹${totals.subtotal.toFixed(
+      `Bill Generated!\n\nCustomer: ${customerName}\nContact: ${phone}\nService By: ${selectedEmployee ?? selectedEmployeeId}\nSubtotal: ₹${totals.subtotal.toFixed(
         2
       )}\nDiscount: ₹${totals.discountAmount.toFixed(2)}\nGrand Total: ₹${totals.grandTotal.toFixed(
         2
@@ -141,8 +152,8 @@ const BillPage: React.FC = () => {
             rules={{
               pattern: {
                 value: /^[0-9]{10}$/,
-                message: 'Phone number must be exactly 10 digits',
-              },
+                message: 'Phone number must be exactly 10 digits'
+              }
             }}
             render={({ field }) => (
               <input
@@ -163,18 +174,38 @@ const BillPage: React.FC = () => {
           <Controller
             name="selectedEmployee"
             control={control}
-            defaultValue={employees[0]?.id?.toString() || ''}
+            defaultValue="Select Employee"
             render={({ field }) => (
               <select
                 {...field}
                 className="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
               >
+                <option value="Select Employee" disabled>
+                  Select Employee
+                </option>
                 {employees.map((employee, index) => (
                   <option key={index} value={employee.id}>
                     {employee.name}
                   </option>
                 ))}
               </select>
+            )}
+          />
+        </div>
+
+        {/* Date Field */}
+        <div>
+          <label className="block mb-2 font-medium">Bill Date</label>
+          <Controller
+            name="billDate"
+            control={control}
+            defaultValue={new Date().toISOString().substring(0, 10)} // Set default to today's date
+            render={({ field }) => (
+              <input
+                {...field}
+                type="date"
+                className="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+              />
             )}
           />
         </div>
@@ -267,7 +298,7 @@ const BillPage: React.FC = () => {
               className="w-full mb-4 px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
               placeholder="Search product..."
             />
-            <div className="space-y-2">
+            <div className="space-y-2 max-h-64 overflow-y-auto">
               {filteredProducts.map((product) => (
                 <div
                   key={product.id}

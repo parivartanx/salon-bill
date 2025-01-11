@@ -16,15 +16,15 @@ const db = new Database(dbPath)
 
 // drop tables
 // Clean the database by dropping all tables
-const cleanDatabase = () => {
-  db.exec(`
-    DROP TABLE IF EXISTS BillProducts;
-    DROP TABLE IF EXISTS Bill;
-    DROP TABLE IF EXISTS Product;
-    DROP TABLE IF EXISTS Employee;
-  `);
-  console.log('Database cleaned: All tables dropped.');
-};
+// const cleanDatabase = () => {
+//   db.exec(`
+//     DROP TABLE IF EXISTS BillProducts;
+//     DROP TABLE IF EXISTS Bill;
+//     DROP TABLE IF EXISTS Product;
+//     DROP TABLE IF EXISTS Employee;
+//   `);
+//   console.log('Database cleaned: All tables dropped.');
+// };
 
 // cleanDatabase()
 
@@ -91,3 +91,9 @@ export interface Product {
   description: string
 }
 
+export interface Employee {
+  id: number;
+  name: string;
+  phone: string;
+  email: string;
+}

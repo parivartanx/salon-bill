@@ -3,7 +3,7 @@ import { useBillStore } from '../stores/bill-store'
 import { Bill } from '@renderer/types/Bill'
 
 const BillHistoryPage: React.FC = () => {
-  const { bills, getAllBills } = useBillStore()
+  const { getAllBills } = useBillStore()
 
   const [filteredBills, setFilteredBills] = useState<Bill[]>([])
   // Initial bill data
@@ -19,21 +19,21 @@ const BillHistoryPage: React.FC = () => {
     })
   }, [])
 
-  const [searchTerm] = useState<string>('')
+  // const [searchTerm] = useState<string>('')
 
-  const searchBill = (searchStr: string) => {
-    const filteredBills = bills.filter(
-      (bill) =>
-        bill.customerName?.includes(searchStr) ||
-        bill.date.includes(searchStr) ||
-        bill.finalTotal.toString().toLowerCase().includes(searchStr.toLowerCase()) ||
-        bill.customerPhone?.toString().includes(searchStr)
-    )
+  // const searchBill = (searchStr: string) => {
+  //   const filteredBills = bills.filter(
+  //     (bill) =>
+  //       bill.customerName?.includes(searchStr) ||
+  //       bill.date.includes(searchStr) ||
+  //       bill.finalTotal.toString().toLowerCase().includes(searchStr.toLowerCase()) ||
+  //       bill.customerPhone?.toString().includes(searchStr)
+  //   )
 
-    console.log('filtered str', filteredBills)
+  //   console.log('filtered str', filteredBills)
 
-    //  setFilteredBills(filteredBills)
-  }
+  //   //  setFilteredBills(filteredBills)
+  // }
 
   // Filter bills based on search term
   // const filteredBills = bills.filter((bill) =>
@@ -48,7 +48,7 @@ const BillHistoryPage: React.FC = () => {
       <h2 className="text-2xl font-bold mb-4 text-gray-800">Bill History</h2>
 
       {/* Search input */}
-      <div className="mb-6">
+      {/* <div className="mb-6">
         <input
           type="text"
           placeholder="Search by Bill No, Date, Customer, or Contact"
@@ -56,7 +56,7 @@ const BillHistoryPage: React.FC = () => {
           value={searchTerm}
           onChange={(e) => searchBill(e.target.value)}
         />
-      </div>
+      </div> */}
 
       <table className="w-full border-collapse">
         <thead>
@@ -66,13 +66,13 @@ const BillHistoryPage: React.FC = () => {
             <th className="p-3 text-left">Customer</th>
             <th className="p-3 text-left">Contact No</th>
             <th className="p-3 text-left">Total</th>
-            <th className="p-3 text-left">Actions</th>
+            <th className="p-3 text-left">Service By</th>
           </tr>
         </thead>
         <tbody>
           {filteredBills.map((bill, index) => (
             <tr className="border-b" key={index}>
-              <td className="p-3">{bill.id}</td>
+              <td className="p-3">{bill.billId}</td>
               <td className="p-3">
                 {new Date(bill.date).toLocaleDateString('en-IN', {
                   day: '2-digit',
@@ -83,11 +83,7 @@ const BillHistoryPage: React.FC = () => {
               <td className="p-3">{bill.customerName}</td>
               <td className="p-3">{bill.customerPhone}</td>
               <td className="p-3">{bill.finalTotal}</td>
-              <td className="p-3">
-                <button className="bg-blue-500 text-white px-4 py-2 rounded-lg hover:bg-blue-600">
-                  View
-                </button>
-              </td>
+              <td className='p-3'>{bill.employeeName ?? "NA"}</td>
             </tr>
           ))}
         </tbody>

@@ -1,5 +1,6 @@
 import { Analytics } from '@renderer/types/Analytics'
 import { Bill } from '@renderer/types/Bill'
+import toast from 'react-hot-toast'
 import {create} from 'zustand'
 
 export interface BillStore{
@@ -41,22 +42,21 @@ export const useBillStore = create<BillStore>((set,get) => ({
         try {
             const response = await window.electron.ipcRenderer.invoke('make-bill', bill)
             if (response.success) {
-                console.log("bill added", bill)
                 set((state) => ({
                     bills: [...state.bills, bill]
                 }))
                 return;
             }
-            console.log(response);
+            toast.error(`Failed ${response.message}`)
         } catch (error) {
             console.log(error);
+            toast.error(`Failed ${(error as Error).message}`)
             return;
         }
     },
     removeBill: async(id) => {
         try {
             const response = await window.electron.ipcRenderer.invoke('delete-bill', { id })
-            console.log("Response from delete-bill", response)
             if(response.success){
                 get().getAllBills()
             }
@@ -76,7 +76,7 @@ export const useBillStore = create<BillStore>((set,get) => ({
             if (response.success) {
                 const data = response.bills as Bill[]
                 set({ bills: response.bills as Bill[] })
-
+                // console.log(data)
                 return data
             }
             return [];

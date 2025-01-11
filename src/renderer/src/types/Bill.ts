@@ -1,5 +1,5 @@
 export interface Bill {
-    id?: number;
+    billId?: number;
     employeeId: number;
     productIds: number[];
     customerName: string | null;
@@ -8,4 +8,5 @@ export interface Bill {
     discount?: number;
     finalTotal: number;
     date: string;
+    employeeName?:string
 }

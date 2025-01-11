@@ -18,7 +18,7 @@ const Sidebar: React.FC<SidebarProps> = ({ activePage, setActivePage }) => {
   return (
     <div className="w-64 bg-white shadow-md">
       <div className="p-6 border-b">
-        <h1 className="text-2xl font-bold text-gray-800">Salon Billing</h1>
+        <h1 className="text-2xl font-bold text-gray-800">Classic Touch Mens Salon</h1>
       </div>
       <nav className="p-4">
         {menuItems.map((item) => (
