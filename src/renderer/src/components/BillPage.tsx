@@ -118,6 +118,7 @@ const BillPage: React.FC = () => {
 
     addBill(bill).then(()=>{
       reset()
+      setSelectedProduct([])
     })
     // alert(
     //   `Bill Generated!\n\nCustomer: ${customerName}\nContact: ${phone}\nService By: ${selectedEmployee ?? selectedEmployeeId}\nSubtotal: ₹${totals.subtotal.toFixed(
