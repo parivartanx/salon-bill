@@ -70,7 +70,7 @@ export const makeBill = async (
   discount: number,
   finalTotal: number,
   date: string,
-  productIds: string[]
+  productIds: string[],
 ) => {
   // Validate employeeId
   const employeeExists = db.prepare('SELECT id FROM Employee WHERE id = ?').get(employeeId)

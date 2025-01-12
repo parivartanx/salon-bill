@@ -218,7 +218,7 @@ ipcMain.handle('update-product', async(_, {id, name, price, description}) => {
   }
 })
 
-ipcMain.handle('make-bill', async(_, {customerPhone,customerName,employeeId, productIds, subTotal, discount, finalTotal, date}) => {
+ipcMain.handle('make-bill', async(_, {customerPhone,customerName,employeeId, productIds, subTotal, discount, finalTotal, date,isPrint}) => {
   try{
     const items:Product[] = []
 
@@ -227,11 +227,19 @@ ipcMain.handle('make-bill', async(_, {customerPhone,customerName,employeeId, pro
       items.push(item)
     }   
     const employee:Employee = await getEmployee(employeeId) 
-    const invoiceNo = await makeBill(customerName,customerPhone,employeeId,subTotal,discount,finalTotal,date,productIds)
+   
+
+    if(!isPrint){
+      await makeBill(customerName,customerPhone,employeeId,subTotal,discount,finalTotal,date,productIds)
+      return { success: true, message: 'Bill added successfully!' }
+    }
+
     const devices = new escpos.USB.findPrinter();
     if(devices.length === 0 ){
       throw new Error("Please connect printer");
     }
+
+    const invoiceNo = await makeBill(customerName,customerPhone,employeeId,subTotal,discount,finalTotal,date,productIds)
 
     const options = { encoding: 'GB18030' /* default */ }
     // encoding is optional

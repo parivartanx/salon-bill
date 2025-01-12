@@ -31,6 +31,8 @@ const BillPage: React.FC = () => {
     control,
     handleSubmit,
     watch,
+    getValues,
+    reset,
     formState: { errors }
   } = useForm<FormData>()
   const { employees, getAllEmployees } = useEmployeeStore()
@@ -46,6 +48,8 @@ const BillPage: React.FC = () => {
   const [selectedProducts, setSelectedProduct] = useState<Product[]>([])
   const [searchTerm, setSearchTerm] = useState('')
   const watchDiscount = watch('discount', 0)
+
+  let print = true;
 
   const { addBill } = useBillStore()
 
@@ -90,7 +94,7 @@ const BillPage: React.FC = () => {
   )
 
   const onSubmit: SubmitHandler<FormData> = (data) => {
-    const { customerName, phone, selectedEmployee, billDate } = data
+    const { customerName, phone, selectedEmployee, billDate } = data;
 
     if (totals.subtotal === 0) {
       toast.error('Please enter amount')
@@ -108,17 +112,20 @@ const BillPage: React.FC = () => {
       finalTotal: totals.grandTotal,
       subTotal: totals.subtotal,
       productIds: selectedProductIds,
-      date: new Date(billDate).toISOString()
+      date: new Date(billDate).toISOString(),
+      isPrint: print
     }
 
-    addBill(bill)
-    alert(
-      `Bill Generated!\n\nCustomer: ${customerName}\nContact: ${phone}\nService By: ${selectedEmployee ?? selectedEmployeeId}\nSubtotal: ₹${totals.subtotal.toFixed(
-        2
-      )}\nDiscount: ₹${totals.discountAmount.toFixed(2)}\nGrand Total: ₹${totals.grandTotal.toFixed(
-        2
-      )}`
-    )
+    addBill(bill).then(()=>{
+      reset()
+    })
+    // alert(
+    //   `Bill Generated!\n\nCustomer: ${customerName}\nContact: ${phone}\nService By: ${selectedEmployee ?? selectedEmployeeId}\nSubtotal: ₹${totals.subtotal.toFixed(
+    //     2
+    //   )}\nDiscount: ₹${totals.discountAmount.toFixed(2)}\nGrand Total: ₹${totals.grandTotal.toFixed(
+    //     2
+    //   )}`
+    // )
   }
 
   return (
@@ -278,12 +285,27 @@ const BillPage: React.FC = () => {
         </div>
 
         {/* Submit Button */}
+        <div className='flex gap-4'>
         <button
+          onClick={()=>{print = true}}
           type="submit"
           className="bg-green-500 text-white px-6 py-2 rounded-lg hover:bg-green-600 transition"
         >
           Generate Bill
         </button>
+        <button
+          type="button"
+          onClick={() => {
+            print = false;
+            onSubmit(getValues())
+          }}
+          className="bg-blue-500 text-white px-6 py-2 rounded-lg hover:bg-blue-600 transition"
+        >
+          Save
+        </button>
+        </div>
+        
+
       </form>
 
       {/* Product Dialog */}

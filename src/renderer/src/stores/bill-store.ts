@@ -30,7 +30,6 @@ export const useBillStore = create<BillStore>((set,get) => ({
                 employeeCurrentMonthBill:saleReport.employeeCurrentMonthBill
             }
 
-            console.log("Analytics report",analyticsReport)
             set({analytics:analyticsReport})
             return analyticsReport;
         }catch(e){
@@ -45,6 +44,7 @@ export const useBillStore = create<BillStore>((set,get) => ({
                 set((state) => ({
                     bills: [...state.bills, bill]
                 }))
+                toast.success('Bill added successfully')
                 return;
             }
             toast.error(`Failed ${response.message}`)

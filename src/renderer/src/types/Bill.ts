@@ -8,5 +8,6 @@ export interface Bill {
     discount?: number;
     finalTotal: number;
     date: string;
-    employeeName?:string
+    employeeName?:string,
+    isPrint?:boolean
 }
